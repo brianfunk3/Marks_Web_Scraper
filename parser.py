@@ -8,7 +8,7 @@ def parse_html():
     raw html files saved out from scraping and puts it into a readable dataframe and
     then saves that out to a .csv file that i will use for the main analysis down the road."""
     # create a list of lists that will hold our data
-    round_names, round_nums, songs, artists, submitters, voters, votes, comments = ([] for i in range(8))
+    round_names, round_nums, ids, songs, artists, submitters, voters, votes, comments = ([] for i in range(9))
 
     # iterate through each round's html file
     for round_file in os.listdir('./tmp/'):
@@ -46,6 +46,11 @@ def parse_html():
                                 artist = spans[0].text
                                 album = spans[2].text
                                 song = elem.a.text
+                                song_link = elem.a.attrs['href']
+
+                                # get the spotify id from the song link
+                                song_id = re.search(pattern = 'https:\/\/open.spotify.com\/track\/(.+)',
+                                                    string = song_link).group(1)
 
                                 # we don't want to create a row yet
                                 continue
@@ -91,6 +96,7 @@ def parse_html():
                                 round_names.append(week_name)
                                 round_nums.append(round_num)
                                 songs.append(song)
+                                ids.append(song_id)
                                 artists.append(artist)
                                 submitters.append(submitter)
                                 voters.append(voter)
@@ -101,8 +107,8 @@ def parse_html():
                                 print('how did you get here?')
 
     # make this into a pandas df
-    df = pd.DataFrame(list(zip(round_nums, round_names, songs, artists, submitters, voters, votes, comments)), 
-                       columns = ['round_num', 'round_name', 'song', 'artist', 'submitter', 'voter', 'votes', 'comments'])
+    df = pd.DataFrame(list(zip(round_nums, round_names, ids, songs, artists, submitters, voters, votes, comments)), 
+                       columns = ['round_num', 'round_name', 'song_id', 'song', 'artist', 'submitter', 'voter', 'votes', 'comments'])
 
     # save 'er out
     df.to_csv('voting_data.csv', index = False)
